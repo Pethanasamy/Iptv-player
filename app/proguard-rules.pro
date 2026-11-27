@@ -1,0 +1,6 @@
+-keep class androidx.media3.** { *; }
+-dontwarn org.checkerframework.**
+-dontwarn javax.annotation.**
+-dontwarn org.conscrypt.**
+-dontwarn org.bouncycastle.**
+-dontwarn org.openjsse.**

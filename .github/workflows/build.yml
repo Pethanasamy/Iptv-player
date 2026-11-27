@@ -1,4 +1,4 @@
-name: Build APK
+name: Build Release APK
 on:
   push:
   workflow_dispatch:
@@ -14,8 +14,26 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.9
-      - run: gradle assembleDebug --no-daemon
+      - name: Restore keystore
+        id: ks
+        uses: actions/cache@v4
+        with:
+          path: ~/release.jks
+          key: kaatchi-keystore-v1
+      - name: Create keystore (first time only)
+        if: steps.ks.outputs.cache-hit != 'true'
+        run: >
+          keytool -genkeypair -keystore $HOME/release.jks -alias kaatchi
+          -keyalg RSA -keysize 2048 -validity 10000
+          -storepass kaatchi123456 -keypass kaatchi123456
+          -dname "CN=Kaatchi TV, O=Mari, C=IN"
+      - name: Build release APK
+        run: gradle assembleRelease --no-daemon
+        env:
+          KEYSTORE_PATH: /home/runner/release.jks
+          KEYSTORE_PASSWORD: kaatchi123456
+          KEY_ALIAS: kaatchi
       - uses: actions/upload-artifact@v4
         with:
-          name: IptvPlayer-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          name: KaatchiTV-release-apk
+          path: app/build/outputs/apk/release/*.apk
